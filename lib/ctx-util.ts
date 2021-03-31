@@ -1,4 +1,4 @@
-import { Vector2 } from "../lib/types";
+import { Vector2 } from "./types";
 
 export const pathPolygon = (ctx: CanvasRenderingContext2D, polygon: Vector2[]) => {
 	ctx.beginPath();

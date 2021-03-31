@@ -1,16 +1,17 @@
-import { flow } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
+import { map } from "fp-ts/lib/Array";
 import { isNone } from "fp-ts/lib/Option";
-import { Vector3 } from "../lib/types";
+import { Morphism, Transformation, Vector3 } from "../lib/types";
 import * as Vec2 from '../lib/vec2';
 import * as Vec3 from '../lib/vec3';
-import { FreeCamera, setWalkVelocity } from "./camera/free-camera";
+import { FirstPersonCamera, setWalkVelocity } from "./camera/first-person-camera";
 import { GameState } from "./game-state";
-import { Morphism, removeEnclosedVoxels, Transformation } from "./util";
+import { removeEnclosedVoxels } from "./util";
 
 type StateTransform = Morphism<GameState, GameState>;
 type StateTransformApplication = Morphism<StateTransform, void>;
 
-function transformCameraInState(t: Transformation<FreeCamera>): Transformation<GameState> {
+function transformCameraInState(t: Transformation<FirstPersonCamera>): Transformation<GameState> {
 	return (state) => ({
 		...state, 
 		camera: t(state.camera)
@@ -18,6 +19,8 @@ function transformCameraInState(t: Transformation<FreeCamera>): Transformation<G
 }
 
 function setupWalkControl(transformState: StateTransformApplication) {
+	const walkSpeed = 6;
+
 	let pressedLocomotionKeys: string[] = [];
 	const locomotionKeys: string[] = ["w", "s", "a", "d"];
 	const keyToVelocity = {
@@ -27,11 +30,12 @@ function setupWalkControl(transformState: StateTransformApplication) {
 		"d": [+1, 0, 0]
 	}
 	const getCurrentWalkVelocity = () => {
-		let sum: Vector3 = [0, 0, 0];
-		for (const pressedKey of pressedLocomotionKeys) {
-			sum = Vec3.add(sum, keyToVelocity[pressedKey]);
-		}
-		return sum;
+		return pipe(
+			pressedLocomotionKeys, 
+			map(key => keyToVelocity[key]), 
+			Vec3.sum, 
+			(v) => Vec3.multiply(v, walkSpeed)
+		)
 	};
 	const updateWalkVelocity = () => {
 		transformState(
@@ -41,8 +45,9 @@ function setupWalkControl(transformState: StateTransformApplication) {
 		)
 	};
 	document.addEventListener("keydown", e => {
-		if (!locomotionKeys.includes(e.key)) return;
-		pressedLocomotionKeys = [...pressedLocomotionKeys, e.key];
+		const key = e.key;
+		if (!locomotionKeys.includes(key) || pressedLocomotionKeys.includes(key)) return;
+		pressedLocomotionKeys = [...pressedLocomotionKeys, key];
 		updateWalkVelocity();
 	});
 	document.addEventListener("keyup", e => {
@@ -97,15 +102,19 @@ function setupCameraControl(canvas: HTMLCanvasElement, transformState: StateTran
 }
 
 function setupJumpControl(transformState: StateTransformApplication) {
+	const jumpForce = 7;
 	const transformCam = flow(transformCameraInState, transformState);
 	document.addEventListener("keydown", e => {
 		if (e.code !== "Space") return;
 		transformCam(
-			cam => ({
-				...cam, 
-				isFalling: true,
-				fallVelocity: 7
-			})
+			cam => {
+				if (cam.isFalling) return cam;
+				return {
+					...cam, 
+					isFalling: true, 
+					fallVelocity: jumpForce
+				}
+			}
 		)
 	});
 }

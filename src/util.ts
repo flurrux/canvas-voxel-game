@@ -1,5 +1,5 @@
 import { flow, not } from 'fp-ts/lib/function';
-import { Vector3, Vector2 } from '../lib/types';
+import { Vector3, Vector2, Morphism } from '../lib/types';
 import * as Vec3 from '../lib/vec3';
 
 export const randomVector = (maxMag: number = 2) : Vector3 => [0, 1, 2].map(() => (Math.random() - 0.5) * maxMag) as Vector3;
@@ -29,9 +29,6 @@ export const mapRange = (range1: [number, number], range2: [number, number], val
 export const setY = (y: number) => (v: Vector3) => [v[0], y, v[2]] as Vector3;
 export const setYZero = setY(0);
 export const flattenY = flow(setYZero, Vec3.normalize);
-
-export type Morphism<A, B> = (a: A) => B;
-export type Transformation<T> = Morphism<T, T>;
 
 const voxelExistsAt = (voxels: Vector3[], point: Vector3): boolean => {
 	return voxels.some(v => Vec3.equal(v, point));

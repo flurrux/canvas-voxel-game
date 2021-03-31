@@ -3,9 +3,10 @@ import { Matrix3, Vector2, Vector3 } from "../../lib/types";
 import { CameraSettings, PerspectiveCamera } from "./perspective-camera";
 import { setYZero } from "../util";
 import * as Vec3 from '../../lib/vec3';
-import { updateFallState } from "../collision";
 
-export type FreeCamera = {
+export type FirstPersonCamera = {
+	gravity: number,
+	colliderRadius: number,
 	walkVelocity: Vector3,
 	isFalling: boolean,
 	fallVelocity: number,
@@ -15,30 +16,30 @@ export type FreeCamera = {
 	perspectiveSettings: CameraSettings
 };
 
-export const setWalkVelocity = (newVelocity: Vector3) => (camera: FreeCamera): FreeCamera => {
+export const setWalkVelocity = (newVelocity: Vector3) => (camera: FirstPersonCamera): FirstPersonCamera => {
 	return {
 		...camera,
 		walkVelocity: newVelocity
 	}
 };
-export const setCameraPosition = (newPosition: Vector3) => (camera: FreeCamera): FreeCamera => {
+export const setCameraPosition = (newPosition: Vector3) => (camera: FirstPersonCamera): FirstPersonCamera => {
 	return {
 		...camera,
 		feetPosition: newPosition
 	}
 };
 
-function calculateOrientation(freeCam: FreeCamera): Matrix3 {
+function calculateOrientation(freeCam: FirstPersonCamera): Matrix3 {
 	const rotationMatrix1 = rotation([0, freeCam.rotation[0], 0]);
 	const rotationMatrix2 = rotation([freeCam.rotation[1], 0, 0]);
 	return multiplyMatrix(rotationMatrix1, rotationMatrix2);
 }
 
-function calculateHeadPosition(freeCam: FreeCamera){
+function calculateHeadPosition(freeCam: FirstPersonCamera){
 	return Vec3.add(freeCam.feetPosition, [0, freeCam.height, 0])
 }
 
-export function toPerspectiveCam(freeCam: FreeCamera): PerspectiveCamera {
+export function toPerspectiveCam(freeCam: FirstPersonCamera): PerspectiveCamera {
 	const orientation = calculateOrientation(freeCam);
 	const inverseMatrix = inverse(orientation);
 	return {
@@ -51,23 +52,17 @@ export function toPerspectiveCam(freeCam: FreeCamera): PerspectiveCamera {
 	}
 }
 
-export const updateCamera = (dt: number, voxels: Vector3[]) => (camera: FreeCamera): FreeCamera => {
+export const updateCameraLocomotion = (dt: number) => (camera: FirstPersonCamera): FirstPersonCamera => {
 	const orientation = calculateOrientation(camera);
-	let globalWalkVelocity = Vec3.normalize(
-		setYZero(
-			multiplyVector(orientation, camera.walkVelocity)
-		)
-	);
-	const walkSpeed = 6;
-	const gravity = -20;
-	const globalVelocity = Vec3.add(Vec3.multiply(globalWalkVelocity, walkSpeed), [0, camera.fallVelocity, 0]);
+	let globalWalkVelocity = setYZero(multiplyVector(orientation, camera.walkVelocity));
+	// const walkSpeed = 6;
+	const globalVelocity = Vec3.add(globalWalkVelocity, [0, camera.fallVelocity, 0]);
 	const curPosition = camera.feetPosition;
 	let nextPosition = Vec3.add(curPosition, Vec3.multiply(globalVelocity, dt));
 	camera = {
 		...camera,
-		fallVelocity: camera.fallVelocity + (camera.isFalling ? gravity * dt : 0),
+		fallVelocity: camera.fallVelocity + (camera.isFalling ? camera.gravity * dt : 0),
 		feetPosition: nextPosition
 	};
-	camera = updateFallState(camera, voxels);
 	return camera;
 };

@@ -1,4 +1,4 @@
-import { Vector3 } from "./types";
+import { Vector2, Vector3 } from "./types";
 
 type Vec3 = [number, number, number];
 
@@ -7,6 +7,15 @@ export const add = (a: Vec3, b: Vec3): Vec3 => [
     a[1] + b[1],
     a[2] + b[2]
 ];
+export function sum(vectors: Vec3[]): Vec3 {
+	let sum: Vector3 = [0, 0, 0];
+	for (const vec of vectors){
+		sum[0] += vec[0];
+		sum[1] += vec[1];
+		sum[2] += vec[2];
+	}
+	return sum;
+}
 export const multiply = (vector: Vec3, scalar: number): Vec3 => [
     vector[0] * scalar,
     vector[1] * scalar,

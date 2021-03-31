@@ -1,13 +1,14 @@
 import { map as mapArray } from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import { isNone, none, Option, some } from "fp-ts/lib/Option";
-import { multiplyVector } from "../lib/mat3x3";
-import { Vector2, Vector3 } from "../lib/types";
-import * as Vec3 from "../lib/vec3";
-import { pathPolygon } from "./ctx-util";
-import { PerspectiveCamera, projectPoints, viewportToCanvas } from "./camera/perspective-camera";
-import { normalize } from "./util";
-import { VoxelFaceNormal, voxelFaceNormals } from './voxel';
+import { multiplyVector } from "../../lib/mat3x3";
+import { Vector2, Vector3 } from "../../lib/types";
+import * as Vec3 from "../../lib/vec3";
+import { PerspectiveCamera, projectPoints } from "../camera/perspective-camera";
+import { normalize } from "../util";
+import { VoxelFaceNormal, voxelFaceNormals } from './voxel-face';
+import { viewportToCanvas } from "../space-conversion";
+import { pathPolygon } from "../../lib/ctx-util";
 
 function getOrthogonalAxes(normal: VoxelFaceNormal): [Vector3, Vector3] {
 	if (normal[0] === +1) return [[0, 0, 1], [0, 1, 0]];
@@ -82,7 +83,7 @@ export function projectVoxelFace(
 	const screenVertices = pipe(
 		culledVertices,
 		projectPoints(cam.settings),
-		mapArray(viewportToCanvas(ctx.canvas))
+		mapArray(viewportToCanvas(ctx))
 	) as ScreenQuad;
 	return some(screenVertices);
 }

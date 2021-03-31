@@ -1,12 +1,16 @@
-import { Vector3, Vector2 } from "../lib/types";
-import { PerspectiveCamera } from "./camera/perspective-camera";
-import { Camera } from "./camera/camera";
-import * as Vec3 from '../lib/vec3';
-import * as Vec2 from '../lib/vec2';
 import { isNone, none, Option, some } from "fp-ts/lib/Option";
-import { Morphism } from "./util";
+import { Vector2, Vector3 } from "../../lib/types";
+import { Camera } from '../camera/camera';
+import { PerspectiveCamera } from '../camera/perspective-camera';
+import * as Vec2 from '../../lib/vec2';
+import * as Vec3 from '../../lib/vec3';
 
-const voxelBoundingRadius = Math.sqrt(3) / 2;
+/*
+	the frustum is the pyramid-like shape of the cameras view into the scene.
+	any point that can be projected visibly onto the screen lies in the frustum. 
+	i know that the frustum is generally a truncated pyramid but in this case 
+	i treat it like a pyramid. the truncation actually happens when rendering voxel faces. 
+*/
 
 export const getCameraDirection = (cam: Camera): Vector3 => cam.transform.orientation.slice(6) as Vector3;
 
@@ -64,28 +68,3 @@ export function calculateFrustumLineIntersection(frustumSize: Vector2, camSpaceL
 	}
 	return t;
 }
-
-export const isVoxelBehindCamera = (cam: Camera) => {
-	const forward = getCameraDirection(cam);
-	const camPos = cam.transform.position;
-	return (worldVoxel: Vector3): boolean => {
-		const relVoxel = Vec3.subtract(worldVoxel, camPos);
-		return Vec3.dot(relVoxel, forward) < -voxelBoundingRadius;
-	};
-};
-
-
-export const frustumCullVoxel = (frustumOffset: number, frustumSize: Vector2, toCamSpace: Morphism<Vector3, Vector3>) => (worldVoxel: Vector3): boolean => {
-	let camSpaceVoxel = toCamSpace(worldVoxel);
-	camSpaceVoxel[2] += frustumOffset;
-	return isPointInsideFrustum(frustumSize, camSpaceVoxel);
-
-};
-export const frustumCullVoxels = (cam: PerspectiveCamera, toCamSpace: Morphism<Vector3, Vector3>) => (worldVoxels: Vector3[]): Vector3[] => {
-	const frustum = calculateFrustumSize(cam);
-	const frustumOffsetNum = calculateFrustumPaddingOffset(frustum, 2 * voxelBoundingRadius);
-	return worldVoxels.filter(
-		frustumCullVoxel(frustumOffsetNum, frustum, toCamSpace)
-	)
-};
-

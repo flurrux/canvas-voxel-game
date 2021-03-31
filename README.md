@@ -4,8 +4,8 @@
 
 a very simple voxel game that i made using only [2d canvas](https://developer.mozilla.org/de/docs/Web/API/CanvasRenderingContext2D).  
 
-the game has simple physics like jumping and collision with voxels (no upward collision). 
-leftclick to place a voxel. rightclick to destroy one.  
+the game has simple physics like jumping and collision with voxels. 
+leftclick to place a voxel and rightclick to destroy one.  
 
 the code is not optimized at all and adding a couple hunded voxels will cause the frames to drop!  
 

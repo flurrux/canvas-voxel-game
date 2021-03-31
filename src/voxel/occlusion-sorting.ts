@@ -2,8 +2,8 @@ import { map, mapWithIndex } from "fp-ts/lib/Array";
 import { flow, pipe } from "fp-ts/lib/function";
 import { init, NonEmptyArray, reverse, sort } from "fp-ts/lib/NonEmptyArray";
 import { contramap, ordNumber } from "fp-ts/lib/Ord";
-import { Vector2 } from "../lib/types";
-import { Morphism, withIndices } from "./util";
+import { Morphism, Vector2 } from "../../lib/types";
+import { withIndices } from "../util";
 
 /*
 

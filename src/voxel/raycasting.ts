@@ -1,10 +1,10 @@
-import { Vector3 } from "../lib/types";
-import { VoxelFaceNormal, voxelFaceNormals } from "./voxel";
+import { Vector3 } from "../../lib/types";
+import { VoxelFaceNormal, voxelFaceNormals } from "./voxel-face";
 import { Option, isNone, isSome, some, none } from 'fp-ts/lib/Option';
-import { Semigroup, getJoinSemigroup, getMeetSemigroup, fold } from 'fp-ts/lib/Semigroup';
+import { Semigroup, getMeetSemigroup, fold } from 'fp-ts/lib/Semigroup';
 import { ordNumber, contramap } from 'fp-ts/lib/Ord'
-import * as Vec3 from '../lib/vec3';
-import { Camera } from "./camera/camera";
+import * as Vec3 from '../../lib/vec3';
+import { Camera } from "../camera/camera";
 
 export type Ray = {
 	origin: Vector3, 

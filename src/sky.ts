@@ -1,11 +1,10 @@
-import { Vector2, Vector3 } from "../lib/types";
-import * as Vec2 from '../lib/vec2';
+import { Morphism, Vector2, Vector3 } from "../lib/types";
 import * as Vec3 from '../lib/vec3';
-import { drawDisc } from "./ctx-util";
-import { calculateFrustumSize, isPointInsideFrustum } from "./frustum-culling";
 import { PerspectiveCamera } from "./camera/perspective-camera";
+import { calculateFrustumSize, isPointInsideFrustum } from "./camera/frustum-culling";
 import { camPointToScreenPoint, worldPointToCamPoint } from "./space-conversion";
-import { createArray, Morphism } from "./util";
+import { createArray } from "./util";
+import { drawDisc } from "../lib/ctx-util";
 
 
 export type Star = {

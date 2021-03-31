@@ -1,28 +1,40 @@
-import { Vector3 } from '../lib/types';
-import * as Vec3 from '../lib/vec3';
-import { FreeCamera, setCameraPosition } from './camera/free-camera';
-import { setY, setYZero } from './util';
+import { flow } from 'fp-ts/lib/function';
+import { Vector2, Vector3 } from '../../lib/types';
+import * as Vec3 from '../../lib/vec3';
+import { FirstPersonCamera, setCameraPosition } from '../camera/first-person-camera';
+import { setY, setYZero } from '../util';
 
+//the ground level is at -0.5 so that voxels placed on the ground have a y coordinate of zero
+const groundLevel = -0.5;
 
 //falling ###
 
-export function updateFallState(camera: FreeCamera, voxels: Vector3[]): FreeCamera {
+const updateFallState = (voxels: Vector3[]) => (camera: FirstPersonCamera): FirstPersonCamera => {
 	const camPosition = camera.feetPosition;
 	const camBottomY = camPosition[1];
-	const camBottomPosition = camPosition;
-	const verticalLevel = findVerticalLevel(camBottomPosition, voxels);
+	const camTopY = camBottomY + camera.height;
+	const verticalLevels = findVerticalLevels(camPosition, camera.height, voxels);
+	const { floor, ceiling } = verticalLevels; 
 	if (camera.isFalling) {
-		if (camera.fallVelocity <= 0 && verticalLevel >= camBottomY) {
+		if (camera.fallVelocity > 0 && ceiling < camTopY){
 			return {
 				...camera,
 				isFalling: false,
 				fallVelocity: 0,
-				feetPosition: setY(verticalLevel)(camPosition)
+				feetPosition: setY(ceiling - camera.height)(camPosition)
+			}
+		}
+		if (camera.fallVelocity <= 0 && floor >= camBottomY) {
+			return {
+				...camera,
+				isFalling: false,
+				fallVelocity: 0,
+				feetPosition: setY(floor)(camPosition)
 			}
 		}
 	}
 	else {
-		if (verticalLevel < camBottomY) {
+		if (floor < camBottomY) {
 			return {
 				...camera,
 				isFalling: true,
@@ -30,19 +42,45 @@ export function updateFallState(camera: FreeCamera, voxels: Vector3[]): FreeCame
 		}
 	}
 	return camera;
+};
+
+const isVoxelAtXZ = (x: number, z: number) => (voxel: Vector3): boolean => voxel[0] === x && voxel[2] === z;
+
+//all the voxels with x and z components equal to the cameras
+function findColumnVoxels(x: number, z: number, voxels: Vector3[]): Vector3[] {
+	return voxels.filter(isVoxelAtXZ(Math.round(x), Math.round(z)));
 }
-function findVerticalLevel(position: Vector3, voxels: Vector3[]): number {
-	const x = Math.round(position[0]);
-	const z = Math.round(position[2]);
-	const y = position[1];
-	let curLevel = -0.5;
-	for (const voxel of voxels) {
-		if (voxel[0] !== x || voxel[2] !== z) continue;
-		const surfaceY = voxel[1] + 0.5;
-		if (surfaceY > y + 1 || surfaceY < curLevel) continue;
-		curLevel = surfaceY;
+
+function findCeilingLevel(headY: number, columnVoxels: Vector3[]): number {
+	const headYRounded = Math.round(headY);
+	let curLevel = 99999;
+	for (const voxel of columnVoxels) {
+		const voxelY = voxel[1];
+		if (voxelY < headYRounded || voxelY > curLevel) continue;
+		curLevel = voxelY
 	}
-	return curLevel;
+	return curLevel - 0.5;
+}
+
+function findFloorLevel(feetY: number, columnVoxels: Vector3[]): number {
+	const feetYRounded = Math.round(feetY);
+	let curLevel = -1;
+	for (const voxel of columnVoxels) {
+		const voxelY = voxel[1];
+		if (voxelY > feetYRounded || voxelY < curLevel) continue;
+		curLevel = voxelY
+	}
+	return curLevel + 0.5;
+}
+
+function findVerticalLevels(feetPosition: Vector3, height: number, voxels: Vector3[]): { floor: number, ceiling: number } {
+	const columnVoxels = findColumnVoxels(feetPosition[0], feetPosition[2], voxels);
+	const feetY = feetPosition[1];
+	const headY = feetY + height;
+	return {
+		floor: findFloorLevel(feetY, columnVoxels),
+		ceiling: findCeilingLevel(headY, columnVoxels)
+	}
 }
 
 
@@ -120,8 +158,14 @@ function performDepentration(position: Vector3, height: number, radius: number, 
 		findCollisionCells(position, height, radius, voxels)
 	);
 }
-export const performDepentrationByCamera = (radius: number, voxels: Vector3[]) => (camera: FreeCamera): FreeCamera => {
+const performDepentrationByCamera = (voxels: Vector3[]) => (camera: FirstPersonCamera): FirstPersonCamera => {
 	return setCameraPosition(
-		performDepentration(camera.feetPosition, camera.height, radius, voxels)
+		performDepentration(camera.feetPosition, camera.height, camera.colliderRadius, voxels)
 	)(camera)
 };
+
+
+export const handlePlayerCollision = (voxels: Vector3[]) => flow(
+	updateFallState(voxels), 
+	performDepentrationByCamera(voxels)
+);

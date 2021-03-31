@@ -1,6 +1,6 @@
-import { Vector3 } from "../lib/types";
-import { createArray } from "./util";
-import * as Vec3 from '../lib/vec3';
+import { Vector3 } from "../../lib/types";
+import { createArray } from "../util";
+import * as Vec3 from '../../lib/vec3';
 
 export function createSphereVoxels(radius: number): Vector3[] {
 	const voxels: Vector3[] = [];

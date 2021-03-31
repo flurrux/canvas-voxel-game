@@ -1,24 +1,28 @@
 import { filter, flatten } from 'fp-ts/lib/Array';
 import { not, pipe } from 'fp-ts/lib/function';
 import { isNone, Option } from 'fp-ts/lib/Option';
-import { Vector3 } from '../lib/types';
+import { Transformation, Vector3 } from '../lib/types';
 import * as Vec3 from '../lib/vec3';
-import { toPerspectiveCam, updateCamera } from './camera/free-camera';
-import { performDepentrationByCamera } from './collision';
+import { toPerspectiveCam, updateCameraLocomotion } from './camera/first-person-camera';
+import { handlePlayerCollision } from './voxel/player-collision';
 import { setupControls } from './controls';
-import { pathPolygon } from './ctx-util';
-import { frustumCullVoxels, isVoxelBehindCamera } from './frustum-culling';
-import { setupFullscreenControl } from './fullscreen-control';
+import { frustumCullVoxels, isVoxelBehindCamera } from './voxel/frustum-culling';
+import { setupFullscreenControl } from './fullscreen-button';
 import { createDefaultGameState, GameState } from './game-state';
-import { createVoxelArraySortFunctionWithCamPosition } from './occlusion-sorting';
+import { createVoxelArraySortFunctionWithCamPosition } from './voxel/occlusion-sorting';
 import { loadSavedGame, setupSaving } from './persistence';
-import { performGazeRaycast, RaycastResult } from './raycasting';
+import { performGazeRaycast, RaycastResult } from './voxel/raycasting';
 import { PerspectiveCamera } from './camera/perspective-camera';
 import { renderStars } from './sky';
 import { worldPointToCamPoint, worldPointToScreenPoint } from './space-conversion';
-import { flattenY, mapRange, removeEnclosedVoxels, startLoop, Transformation } from './util';
-import { projectVoxelFace, projectVoxelFaces, renderVoxelProjections } from './voxel-rendering';
-import { createSphereVoxels } from './voxel-shapes';
+import { flattenY, mapRange, removeEnclosedVoxels, startLoop } from './util';
+import { projectVoxelFace, projectVoxelFaces, renderVoxelProjections } from './voxel/rendering';
+import { createSphereVoxels } from './voxel/shapes';
+import { pathPolygon } from '../lib/ctx-util';
+
+//ideas:
+//long press of spacebar to launch yourself
+//3d visualization of occlusion order
 
 
 //setup canvas ###
@@ -200,8 +204,8 @@ function update(dt: number, state: GameState): GameState {
 	const { camera, voxels } = state;
 	const updatedCamera = pipe(
 		camera,
-		updateCamera(dt, voxels),
-		performDepentrationByCamera(0.3, voxels)
+		updateCameraLocomotion(dt),
+		handlePlayerCollision(voxels)
 	);
 	return {
 		...state, 

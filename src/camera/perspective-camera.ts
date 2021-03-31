@@ -33,11 +33,3 @@ export const projectPoints = (cam: CameraSettings) => {
 		return points.map(projectPoint(cam));
 	};
 };
-export const viewportToCanvas = (canvas: any) => {
-	return (point: Vector2) : Vector2 => {
-		return [
-			point[0] * canvas.offsetWidth / 2, 
-			point[1] * canvas.offsetHeight / 2
-		];
-	};
-};

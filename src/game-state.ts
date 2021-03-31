@@ -1,13 +1,12 @@
 import { none, Option } from 'fp-ts/lib/Option';
-import { identity } from '../lib/mat3x3';
 import { Vector3 } from '../lib/types';
-import { FreeCamera, toPerspectiveCam } from './camera/free-camera';
-import { RaycastResult } from './raycasting';
+import { FirstPersonCamera, toPerspectiveCam } from './camera/first-person-camera';
+import { RaycastResult } from './voxel/raycasting';
 import { createCamSettingsFromCanvas, PerspectiveCamera } from './camera/perspective-camera';
 import { createRandomStars, Star } from './sky';
 
 export type GameState = {
-	camera: FreeCamera,
+	camera: FirstPersonCamera,
 	currentBakedCamera: PerspectiveCamera,
 	currentRayIntersection: Option<RaycastResult>,
 	renderRequested: boolean,
@@ -18,7 +17,9 @@ export type GameState = {
 };
 
 export const createDefaultGameState = (ctx: CanvasRenderingContext2D): GameState => {
-	const defaultCamera: FreeCamera = {
+	const defaultCamera: FirstPersonCamera = {
+		gravity: -20,
+		colliderRadius: 0.3,
 		walkVelocity: [0, 0, 0],
 		isFalling: false,
 		fallVelocity: 0,

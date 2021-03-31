@@ -1,14 +1,13 @@
-import { Vector3 } from "../lib/types";
-import { FreeCamera } from "./camera/free-camera";
+import { Morphism, Vector3 } from "../lib/types";
+import { FirstPersonCamera } from "./camera/first-person-camera";
 import { GameState } from "./game-state";
 import { Star } from "./sky";
-import { Morphism } from "./util";
 
 const persistenceKey: string = "voxel-canvas-state";
 
 type PersistedState = {
 	voxels: Vector3[],
-	camera: FreeCamera, 
+	camera: FirstPersonCamera, 
 	stars: Star[]
 };
 
