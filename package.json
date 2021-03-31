@@ -1,0 +1,21 @@
+{
+  "name": "@flurrux/canvas-voxel-game",
+  "version": "1.0.0",
+  "description": "a very simple voxel game",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel src/index.html",
+    "build": "parcel build src/index.html",
+    "prepublish": "npm run build"
+  },
+  "author": "Christian Hoffmann <christianhoffmann@outlook.com>",
+  "license": "ISC",
+  "dependencies": {
+    "fp-ts": "^2.9.5"
+  },
+  "devDependencies": {
+    "cssnano": "^4.1.10",
+    "typescript": "^3.9.9"
+  }
+}
