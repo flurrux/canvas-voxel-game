@@ -1,12 +1,12 @@
 import { flow, pipe } from "fp-ts/lib/function";
 import { map } from "fp-ts/lib/Array";
-import { isNone } from "fp-ts/lib/Option";
+import { isNone, none, Option, some } from "fp-ts/lib/Option";
 import { Morphism, Transformation, Vector3 } from "../lib/types";
 import * as Vec2 from '../lib/vec2';
 import * as Vec3 from '../lib/vec3';
 import { FirstPersonCamera, setWalkVelocity } from "./camera/first-person-camera";
 import { GameState } from "./game-state";
-import { removeEnclosedVoxels } from "./util";
+import { removeEnclosedVoxels, setYZero } from "./util";
 
 type StateTransform = Morphism<GameState, GameState>;
 type StateTransformApplication = Morphism<StateTransform, void>;
@@ -101,21 +101,54 @@ function setupCameraControl(canvas: HTMLCanvasElement, transformState: StateTran
 	});
 }
 
-function setupJumpControl(transformState: StateTransformApplication) {
+function startJump(cam: FirstPersonCamera): FirstPersonCamera {
+	if (cam.isFalling) return cam;
 	const jumpForce = 7;
+	return {
+		...cam,
+		isFalling: true,
+		fallVelocity: [0, jumpForce, 0]
+	}
+}
+function setupJumpControl(transformState: StateTransformApplication) {
 	const transformCam = flow(transformCameraInState, transformState);
 	document.addEventListener("keydown", e => {
 		if (e.code !== "Space") return;
-		transformCam(
-			cam => {
-				if (cam.isFalling) return cam;
-				return {
-					...cam, 
-					isFalling: true, 
-					fallVelocity: jumpForce
-				}
-			}
-		)
+		transformCam(startJump);
+	});
+}
+
+function catapultPlayer(state: GameState): GameState {
+	if (isNone(state.currentRayIntersection)) return state;
+	const cam = state.camera;
+	if (cam.isFalling) return state;
+	const startPoint = cam.feetPosition;
+	const targetPoint = Vec3.add(
+		state.currentRayIntersection.value.voxel,
+		[0, 0.5, 0]
+	);
+	const targetVector = Vec3.subtract(targetPoint, startPoint);
+	const catapultDuration = Vec3.magnitude(targetVector) / 10;
+	const diffY = targetVector[1];
+	const initialVerticalVelocity = diffY / catapultDuration - 0.5 * cam.gravity * catapultDuration;
+	const catapultVelocity: Vector3 = [
+		targetVector[0] / catapultDuration, 
+		initialVerticalVelocity,
+		targetVector[2] / catapultDuration,
+	];
+	return {
+		...state, 
+		camera: {
+			...cam, 
+			isFalling: true,
+			fallVelocity: catapultVelocity
+		}
+	}
+}
+function setupCatapultControl(transformState: StateTransformApplication){
+	document.addEventListener("keydown", e => {
+		if (e.key !== "j") return;
+		transformState(catapultPlayer);
 	});
 }
 
@@ -124,4 +157,5 @@ export function setupControls(canvas: HTMLCanvasElement, transformState: StateTr
 	setupCameraControl(canvas, transformState);
 	setupWalkControl(transformState);
 	setupJumpControl(transformState);
+	setupCatapultControl(transformState);
 }

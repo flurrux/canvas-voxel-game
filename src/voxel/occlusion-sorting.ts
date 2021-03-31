@@ -1,7 +1,7 @@
 import { map, mapWithIndex } from "fp-ts/lib/Array";
 import { flow, pipe } from "fp-ts/lib/function";
 import { init, NonEmptyArray, reverse, sort } from "fp-ts/lib/NonEmptyArray";
-import { contramap, ordNumber } from "fp-ts/lib/Ord";
+import { contramap, ordNumber, getDualOrd } from "fp-ts/lib/Ord";
 import { Morphism, Vector2 } from "../../lib/types";
 import { withIndices } from "../util";
 
@@ -58,7 +58,7 @@ function getSignPatternDimensionality(pattern: SignPattern): number {
 	for (const sign of pattern) dim += Math.abs(sign);
 	return dim;
 }
-const signPatternOrd = contramap(getSignPatternDimensionality)(ordNumber);
+const signPatternOrd = getDualOrd(contramap(getSignPatternDimensionality)(ordNumber));
 
 
 const vectorMatchesSignPattern = (signPattern: number[]) => (v: number[]): boolean => {
@@ -122,7 +122,7 @@ function createVoxelArraySortFunction<V extends number[]>(d: number): VoxelArray
 		d, 
 		getAllSignPatterns as Morphism<number, NonEmptyArray<SignPattern>>, 
 		sort(signPatternOrd), 
-		reverse, init
+		init
 	);
 	return flow(
 		partitionVoxelsBySignPattern(signPatterns),

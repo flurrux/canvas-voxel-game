@@ -73,3 +73,17 @@ export type ArrayWithIndices<T> = [number, T][];
 export function withIndices<T>(array: T[]): ArrayWithIndices<T> {
 	return range(0, array.length).map(index => [index, array[index]])
 }
+
+export function adjustCanvasSizeToWindow(canvas: HTMLCanvasElement){
+	const widthPx = window.innerWidth;
+	const heightPx = window.innerHeight;
+	const scalePx = window.devicePixelRatio || 1;
+	Object.assign(canvas.style, {
+		width: `${widthPx}px`,
+		height: `${heightPx}px`
+	});
+	Object.assign(canvas, {
+		width: widthPx * scalePx,
+		height: heightPx * scalePx
+	});
+}

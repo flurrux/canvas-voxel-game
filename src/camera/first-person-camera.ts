@@ -9,7 +9,7 @@ export type FirstPersonCamera = {
 	colliderRadius: number,
 	walkVelocity: Vector3,
 	isFalling: boolean,
-	fallVelocity: number,
+	fallVelocity: Vector3,
 	height: number,
 	rotation: Vector2,
 	feetPosition: Vector3, 
@@ -55,13 +55,12 @@ export function toPerspectiveCam(freeCam: FirstPersonCamera): PerspectiveCamera 
 export const updateCameraLocomotion = (dt: number) => (camera: FirstPersonCamera): FirstPersonCamera => {
 	const orientation = calculateOrientation(camera);
 	let globalWalkVelocity = setYZero(multiplyVector(orientation, camera.walkVelocity));
-	// const walkSpeed = 6;
-	const globalVelocity = Vec3.add(globalWalkVelocity, [0, camera.fallVelocity, 0]);
+	const globalVelocity = Vec3.add(globalWalkVelocity, camera.fallVelocity);
 	const curPosition = camera.feetPosition;
 	let nextPosition = Vec3.add(curPosition, Vec3.multiply(globalVelocity, dt));
 	camera = {
 		...camera,
-		fallVelocity: camera.fallVelocity + (camera.isFalling ? camera.gravity * dt : 0),
+		fallVelocity: camera.isFalling ? Vec3.add(camera.fallVelocity, [0, camera.gravity * dt, 0]) : [0, 0, 0],
 		feetPosition: nextPosition
 	};
 	return camera;

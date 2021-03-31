@@ -16,19 +16,20 @@ const updateFallState = (voxels: Vector3[]) => (camera: FirstPersonCamera): Firs
 	const verticalLevels = findVerticalLevels(camPosition, camera.height, voxels);
 	const { floor, ceiling } = verticalLevels; 
 	if (camera.isFalling) {
-		if (camera.fallVelocity > 0 && ceiling < camTopY){
+		const fallVelocityY = camera.fallVelocity[1];
+		if (fallVelocityY > 0 && ceiling < camTopY){
 			return {
 				...camera,
 				isFalling: false,
-				fallVelocity: 0,
+				fallVelocity: [0, 0, 0],
 				feetPosition: setY(ceiling - camera.height)(camPosition)
 			}
 		}
-		if (camera.fallVelocity <= 0 && floor >= camBottomY) {
+		if (fallVelocityY <= 0 && floor >= camBottomY) {
 			return {
 				...camera,
 				isFalling: false,
-				fallVelocity: 0,
+				fallVelocity: [0, 0, 0],
 				feetPosition: setY(floor)(camPosition)
 			}
 		}

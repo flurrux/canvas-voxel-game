@@ -15,13 +15,12 @@ import { performGazeRaycast, RaycastResult } from './voxel/raycasting';
 import { PerspectiveCamera } from './camera/perspective-camera';
 import { renderStars } from './sky';
 import { worldPointToCamPoint, worldPointToScreenPoint } from './space-conversion';
-import { flattenY, mapRange, removeEnclosedVoxels, startLoop } from './util';
+import { adjustCanvasSizeToWindow, flattenY, mapRange, removeEnclosedVoxels, startLoop } from './util';
 import { projectVoxelFace, projectVoxelFaces, renderVoxelProjections } from './voxel/rendering';
 import { createSphereVoxels } from './voxel/shapes';
 import { pathPolygon } from '../lib/ctx-util';
 
 //ideas:
-//long press of spacebar to launch yourself
 //3d visualization of occlusion order
 
 
@@ -29,23 +28,9 @@ import { pathPolygon } from '../lib/ctx-util';
 
 const canvas = document.body.querySelector("canvas");
 const ctx = canvas.getContext("2d");
-const updateCanvasSize = () => {
-	const widthPx = window.innerWidth;
-	const heightPx = window.innerHeight;
-	const scalePx = window.devicePixelRatio || 1;
-	Object.assign(canvas.style, {
-		width: `${widthPx}px`,
-		height: `${heightPx}px`
-	});
-	Object.assign(canvas, {
-		width: widthPx * scalePx,
-		height: heightPx * scalePx
-	});
-	// ctx.setTransform(scalePx, 0, 0, scalePx, 0, 0);
-};
 
 const onresize = () => {
-	updateCanvasSize();
+	adjustCanvasSizeToWindow(canvas);
 	const screenSize = (window.innerWidth + window.innerHeight) / 2;
 	const targetPlaneSize = mapRange([700, 1200], [2.5, 3], screenSize);
 	const planeScale = targetPlaneSize / (2 * Math.min(canvas.offsetWidth, canvas.offsetHeight));
@@ -245,7 +230,6 @@ const main = () => {
 		updatePrefilteredVoxels
 	);
 	setupSaving(() => state);
-	updateCanvasSize();
     onresize();
 	setupFullscreenControl("#fullscreen-button");
 	setupControls(canvas, transformStateAndRender);
