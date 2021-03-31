@@ -16,7 +16,10 @@ export function loadSavedGame(state: GameState): GameState {
 	const stateStr = window.localStorage.getItem(persistenceKey);
 	if (!stateStr) return state;
 	const toLoad = JSON.parse(stateStr) as PersistedState;
-	return { ...state, ...toLoad };
+	return { 
+		...state, 
+		...toLoad
+	};
 }
 
 export function setupSaving(getState: Morphism<void, GameState>) {

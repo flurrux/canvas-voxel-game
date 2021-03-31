@@ -1,15 +1,15 @@
 import { Vector3 } from '../lib/types';
 import * as Vec3 from '../lib/vec3';
-import { FreeCamera, setCameraPosition } from './free-camera';
+import { FreeCamera, setCameraPosition } from './camera/free-camera';
 import { setY, setYZero } from './util';
 
 
 //falling ###
 
 export function updateFallState(camera: FreeCamera, voxels: Vector3[]): FreeCamera {
-	const camPosition = camera.transform.position;
-	const camBottomY = camPosition[1] - camera.height;
-	const camBottomPosition = [camPosition[0], camBottomY, camPosition[2]] as Vector3;
+	const camPosition = camera.feetPosition;
+	const camBottomY = camPosition[1];
+	const camBottomPosition = camPosition;
 	const verticalLevel = findVerticalLevel(camBottomPosition, voxels);
 	if (camera.isFalling) {
 		if (camera.fallVelocity <= 0 && verticalLevel >= camBottomY) {
@@ -17,10 +17,7 @@ export function updateFallState(camera: FreeCamera, voxels: Vector3[]): FreeCame
 				...camera,
 				isFalling: false,
 				fallVelocity: 0,
-				transform: {
-					...camera.transform,
-					position: setY(verticalLevel + camera.height)(camPosition)
-				}
+				feetPosition: setY(verticalLevel)(camPosition)
 			}
 		}
 	}
@@ -101,8 +98,8 @@ function findCollisionCells(position: Vector3, height: number, radius: number, v
 	const relCells = getRelativeIntersectedCells(position, radius);
 	const positionR = Vec3.round(position);
 	//add a small offset so that when walking on voxels, we don't get stuck on the surface
-	const bottomY = Math.round(position[1] - height + 0.05);
-	const topY = Math.round(position[1]);
+	const bottomY = Math.round(position[1] + 0.05);
+	const topY = Math.round(position[1] + height);
 	let collisionCells: RelativeIntersectedCell[] = [];
 	for (const voxel of voxels) {
 		if (voxel[1] < bottomY || voxel[1] > topY) continue;
@@ -125,6 +122,6 @@ function performDepentration(position: Vector3, height: number, radius: number, 
 }
 export const performDepentrationByCamera = (radius: number, voxels: Vector3[]) => (camera: FreeCamera): FreeCamera => {
 	return setCameraPosition(
-		performDepentration(camera.transform.position, camera.height, radius, voxels)
+		performDepentration(camera.feetPosition, camera.height, radius, voxels)
 	)(camera)
 };

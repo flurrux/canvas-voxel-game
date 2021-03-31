@@ -3,7 +3,7 @@ import { not, pipe } from 'fp-ts/lib/function';
 import { isNone, Option } from 'fp-ts/lib/Option';
 import { Vector3 } from '../lib/types';
 import * as Vec3 from '../lib/vec3';
-import { updateCamera } from './camera/free-camera';
+import { toPerspectiveCam, updateCamera } from './camera/free-camera';
 import { performDepentrationByCamera } from './collision';
 import { setupControls } from './controls';
 import { pathPolygon } from './ctx-util';
@@ -44,15 +44,15 @@ const onresize = () => {
 	updateCanvasSize();
 	const screenSize = (window.innerWidth + window.innerHeight) / 2;
 	const targetPlaneSize = mapRange([700, 1200], [2.5, 3], screenSize);
-	const planeScale = targetPlaneSize / Math.min(canvas.offsetWidth, canvas.offsetHeight);
+	const planeScale = targetPlaneSize / (2 * Math.min(canvas.offsetWidth, canvas.offsetHeight));
 	setStateAndRender({
 		...state,
 		camera: {
 			...state.camera,
-			settings: {
+			perspectiveSettings: {
 				zScale: 2,
-				planeWidthHalf: canvas.offsetWidth * planeScale / 2,
-				planeHeightHalf: canvas.offsetHeight * planeScale / 2
+				planeWidthHalf: canvas.offsetWidth * planeScale,
+				planeHeightHalf: canvas.offsetHeight * planeScale
 			}
 		}
 	});
@@ -171,7 +171,8 @@ const render = (ctx: CanvasRenderingContext2D, state: GameState) => {
     
 	const { canvas } = ctx;
 	const [w, h] = [canvas.width, canvas.height];
-	const { camera, stars, currentRayIntersection } = state;
+	const { stars, currentRayIntersection } = state;
+	const camera = state.currentBakedCamera;
 
 	ctx.save();
     ctx.fillStyle = backgroundColor;
@@ -197,14 +198,16 @@ function deltaTimeToFps(dt: number): number {
 }
 function update(dt: number, state: GameState): GameState {
 	const { camera, voxels } = state;
+	const updatedCamera = pipe(
+		camera,
+		updateCamera(dt, voxels),
+		performDepentrationByCamera(0.3, voxels)
+	);
 	return {
 		...state, 
-		camera: pipe(
-			camera, 
-			updateCamera(dt, voxels), 
-			performDepentrationByCamera(0.3, voxels)
-		),
-		currentRayIntersection: performGazeRaycast(camera, voxels)
+		camera: updatedCamera,
+		currentBakedCamera: toPerspectiveCam(updatedCamera),
+		currentRayIntersection: performGazeRaycast(state.currentBakedCamera, voxels)
 	}
 }
 function needsUpdate(state: GameState): boolean {
