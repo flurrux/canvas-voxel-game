@@ -20,9 +20,6 @@ import { projectVoxelFace, projectVoxelFaces, renderVoxelProjections } from './v
 import { createSphereVoxels } from './voxel/shapes';
 import { pathPolygon } from '../lib/ctx-util';
 
-//ideas:
-//3d visualization of occlusion order
-
 
 //setup canvas ###
 

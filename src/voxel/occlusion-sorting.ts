@@ -3,7 +3,7 @@ import { flow, pipe } from "fp-ts/lib/function";
 import { init, NonEmptyArray, reverse, sort } from "fp-ts/lib/NonEmptyArray";
 import { contramap, ordNumber, getDualOrd } from "fp-ts/lib/Ord";
 import { Morphism, Vector2 } from "../../lib/types";
-import { withIndices } from "../util";
+import { WithIndex, getValue, getIndex, map as mapWIndex, withIndices, getIndices, getItems } from '../../lib/with-index';
 
 /*
 
@@ -77,7 +77,6 @@ function mergeArrays<T>(arrays: T[][]): T[] {
 }
 
 
-
 //vector operations ###
 
 const combineVectorsComponentWise = (comb: (n1: number, n2: number) => number) => <V extends number[]>(a: V, b: V): V => {
@@ -102,22 +101,36 @@ function roundVector<V extends number[]>(v: V): V {
 	return v.map(Math.round) as V;
 }
 
-export function createVoxelArraySortFunctionWithCamPosition<V extends number[]>(d: number){
-	const sortFunc = createVoxelArraySortFunction<V>(d);
-	return (camPosition: V, voxels: V[]) => {
+const log = (label: string) => <T>(t: T): T => {
+	console.log("### label ###");
+	console.log(t);
+	return t;
+};
+
+export function createVoxelArraySortFunctionWithCamPosition<T, V extends number[]>(m: Morphism<T, V>, d: number){
+	const sortFunc = createVoxelArraySortFunction<WithIndex<V>, V>(getValue, d);
+	return (camPosition: V, voxels: T[]) => {
+		const wrappedVoxels = withIndices(voxels.map(m));
 		camPosition = roundVector(camPosition);
 		return pipe(
-			voxels, 
-			map(makeVectorRelative(camPosition)),
+			wrappedVoxels,
+			map(
+				mapWIndex(
+					makeVectorRelative(camPosition)
+				)
+			),
 			sortFunc, 
-			map(makeVectorUnrelative(camPosition))
+			map(
+				mapWIndex(
+					makeVectorRelative(camPosition)
+				)
+			),
+			getIndices, getItems(voxels)
 		)
 	}
 }
 
-type VoxelArraySortFunc<V extends number[]> = (voxels: V[]) => V[];
-
-function createVoxelArraySortFunction<V extends number[]>(d: number): VoxelArraySortFunc<V> {
+function createVoxelArraySortFunction<T, V extends number[]>(m: Morphism<T, V>, d: number) {
 	const signPatterns: SignPattern[] = pipe(
 		d, 
 		getAllSignPatterns as Morphism<number, NonEmptyArray<SignPattern>>, 
@@ -125,15 +138,19 @@ function createVoxelArraySortFunction<V extends number[]>(d: number): VoxelArray
 		init
 	);
 	return flow(
-		partitionVoxelsBySignPattern(signPatterns),
-		mapWithIndex((i, p) => sortVoxelPartition(signPatterns[i], p)), 
+		partitionVoxelsBySignPattern(m, signPatterns),
+		mapWithIndex((i, p) => sortVoxelPartition(m, signPatterns[i], p)), 
 		mergeArrays
 	)
 }
 
-const partitionVoxelsBySignPattern = (patterns: SignPattern[]) => <V extends number[]>(voxels: V[]): V[][] => {
+const partitionVoxelsBySignPattern = <T, V extends number[]>(m: Morphism<T, V>, patterns: SignPattern[]) => (voxels: T[]): T[][] => {
 	return patterns.map(
-		pattern => voxels.filter(vectorMatchesSignPattern(pattern))
+		pattern => voxels.filter(
+			flow(
+				m, vectorMatchesSignPattern(pattern)
+			)
+		)
 	)
 };
 
@@ -145,12 +162,13 @@ const calculateDiagonalValue = (signPattern: SignPattern) => <V extends number[]
 	return componentSum;
 };
 
-function sortVoxelPartition<V extends number[]>(signPattern: SignPattern, voxels: V[]): V[] {
-	//pure!
-	//avoid uncessary computations by calculating the diagonals once and bundling it with index of the voxel
-	//then simply sort the pairs of indices and diagonal values
+function sortVoxelPartition<T, V extends number[]>(m: Morphism<T, V>, signPattern: SignPattern, voxels: T[]): T[] {
 	const indexedRowValues = withIndices(
-		voxels.map(calculateDiagonalValue(signPattern))
+		voxels.map(
+			flow(
+				m, calculateDiagonalValue(signPattern)
+			)
+		)
 	); 
 	const indexedRowsSortFunc = (a: Vector2, b: Vector2) => b[1] - a[1];
 	const sortedRowValues = indexedRowValues.sort(indexedRowsSortFunc);

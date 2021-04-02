@@ -1,8 +1,8 @@
+import { drawDisc } from "../lib/ctx-util";
 import { Vector2 } from "../lib/types";
 // import { createVoxelArraySortFunctionWithCamPosition } from "../src/occlusion-sorting";
 // import { sortVoxels } from "../src/occlusion-sorting";
 import * as Vec2 from '../lib/vec2';
-import { drawDisc } from '../src/ctx-util';
 
 const canvas = document.body.querySelector("canvas");
 const ctx = canvas.getContext("2d");

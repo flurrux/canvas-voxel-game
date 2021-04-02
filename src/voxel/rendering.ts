@@ -9,8 +9,9 @@ import { normalize } from "../util";
 import { VoxelFaceNormal, voxelFaceNormals } from './voxel-face';
 import { viewportToCanvas } from "../space-conversion";
 import { pathPolygon } from "../../lib/ctx-util";
+import { Camera } from "../camera/camera";
 
-function getOrthogonalAxes(normal: VoxelFaceNormal): [Vector3, Vector3] {
+export function getOrthogonalAxes(normal: VoxelFaceNormal): [Vector3, Vector3] {
 	if (normal[0] === +1) return [[0, 0, 1], [0, 1, 0]];
 	if (normal[0] === -1) return [[0, 0, -1], [0, 1, 0]];
 	if (normal[1] === +1) return [[1, 0, 0], [0, 0, 1]];
@@ -51,6 +52,24 @@ function cutPolygonPartInBackIfClose(
 	
 	if (Vec3.sqrdMagnitude(camSpaceVoxel) > minDistanceSqrd) return camSpacePolygon;
 	return cutPolygonPartInBack(minZ, camSpacePolygon);
+}
+
+
+const isVoxelNormalFacingCamera = (cam: Camera, voxel: Vector3) => {
+	const relCamPosition = Vec3.subtract(cam.transform.position, voxel);
+	return (faceNormal: VoxelFaceNormal): boolean => {
+		return Vec3.dot(
+			Vec3.subtract(
+				relCamPosition, 
+				Vec3.multiply(faceNormal, 0.5)
+			), 
+			faceNormal
+		) > 0;
+	};
+};
+
+export function getVisibleFaceNormals(cam: Camera, voxel: Vector3): VoxelFaceNormal[] {
+	return voxelFaceNormals.filter(isVoxelNormalFacingCamera(cam, voxel));
 }
 
 export function projectVoxelFace(

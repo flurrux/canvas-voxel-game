@@ -19,6 +19,9 @@ export const createArray = (length: number): any[] => {
 export function normalize(from: number, to: number, value: number): number {
 	return (value - from) / (to - from);
 }
+export function interpolate(from: number, to: number, value: number): number {
+	return from + (to - from) * value
+}
 
 export const mapRange = (range1: [number, number], range2: [number, number], value: number): number => {
 	const relVal = value - range1[0];
@@ -67,11 +70,6 @@ export function range(start: number, end: number): number[] {
 		array.push(i);
 	}
 	return array;
-}
-
-export type ArrayWithIndices<T> = [number, T][];
-export function withIndices<T>(array: T[]): ArrayWithIndices<T> {
-	return range(0, array.length).map(index => [index, array[index]])
 }
 
 export function adjustCanvasSizeToWindow(canvas: HTMLCanvasElement){
