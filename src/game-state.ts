@@ -22,7 +22,7 @@ export const createDefaultGameState = (ctx: CanvasRenderingContext2D): GameState
 		colliderRadius: 0.3,
 		walkVelocity: [0, 0, 0],
 		isFalling: false,
-		fallVelocity: 0,
+		fallVelocity: [0, 0, 0],
 		height: 1.7,
 		rotation: [0, 0],
 		feetPosition: [0, -0.5, -5],
