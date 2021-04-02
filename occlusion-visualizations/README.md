@@ -3,30 +3,29 @@
 
 without occlusion, the order of the voxels will be wrong  
 
-<img alt="animated algorithm 2d" src="./occlusion-comparison.gif" height="400" />  
+![occlusion vs. no occlusion](./occlusion-comparison.gif)  
 
 here is a simple visualization of how the voxels are ordered  
 
-<img alt="animated algorithm 2d" src="./occlusion-2D.gif" height="300" />
+![animated algorithm 2D](./occlusion-2D.gif)  
 
 diagonal lines occlude other diagonal lines further away. voxels in the same diagonal don't occlude each other. their order is irrelevant. 
 
-<img alt="diagonals occlude diagonals" src="./diagonal-occludes-diagonal.png" height="300" />
+![diagonals occlude diagonals](./diagonal-occludes-diagonal.png)  
 
 voxels on the blue line can occlude voxels in the adjacent quadrants.  
 
-<img alt="line occludes quadrant" src="./line-occludes-quadrant.png" height="300" /> 
+![line occludes quadrant](./line-occludes-quadrant.png)  
 
 but not the other way around!  
 
-<img alt="quadrant does not occlude line" src="./quadrant-does-not-occlude-line.png" height="300" /> 
-
+![quadrant does not occlude line](./quadrant-does-not-occlude-line.png)  
 
 this principle extends to higher dimensions.  
 here is the order of rendering in an empty 3D box:  
 
-![empty sweep 3d](./empty-sweeping.gif)  
+![render order demonstration 3D](./empty-sweeping.gif)  
 
 and now when the box has some voxels  
 
-![full sweep 3d](./full-sweeping.gif)  
+![another render order demonstration 3D](./full-sweeping.gif)  
