@@ -392,10 +392,10 @@ const boxSize = 5;
 
 const focusedSubSpace: SignPattern = [1, 1, 1];
 const initialDemoVoxels: Voxel[] = [
-	{
-		type: "camera", 
-		position: [0, 0, 0]
-	},
+	// {
+	// 	type: "camera", 
+	// 	position: [0, 0, 0]
+	// },
 	...pipe(
 		createBoxPoints(boxSize),
 		// filter(flow(isPointInSubSpace(focusedSubSpace))),
@@ -403,15 +403,15 @@ const initialDemoVoxels: Voxel[] = [
 		map(position => ({
 			type: "filled",
 			position,
-			color: [145, 171, 179],// randomRgbVector(),
-			alpha: 0.2,
+			color: randomRgbVector(),//[145, 171, 179],// randomRgbVector(),
+			alpha: 1,
 		} as FilledVoxel))
 	)
 ];
 
 let voxels: Voxel[] = [
 	...initialDemoVoxels,
-	...createBoxOutline(boxSize),
+	// ...createBoxOutline(boxSize),
 	// ...mergeWireVoxels(
 	// 	createSubSpaceOutline(boxSize, focusedSubSpace),
 	// 	createBoxOutline(boxSize)
@@ -640,6 +640,30 @@ function setupOrbitCameraControl(){
 		render();
 	});
 }
+function setupOcclusionControl() {
+	document.body.insertAdjacentHTML("beforeend", `
+		<div
+			id="occlusion-indicator"
+			style="
+				position: absolute;
+				top: 25px;
+				left: 0px;
+				right: 0px;
+				display: flex;
+				justify-content: center;
+				font-weight: bold;
+				font-size: 60px;
+			"
+		>occlusion on</div>
+	`);
+	document.addEventListener("keydown", e => {
+		if (e.key !== "o") return;
+		useOcclusion = !useOcclusion;
+		document.querySelector("#occlusion-indicator").innerHTML = `occlusion ${useOcclusion ? "on" : "off"}`;
+		render();
+	});
+}
+
 
 const main = () => {
 	updateCanvasSize();
@@ -651,5 +675,6 @@ const main = () => {
 			animate();
 		}
 	});
+	setupOcclusionControl();
 };
 main();

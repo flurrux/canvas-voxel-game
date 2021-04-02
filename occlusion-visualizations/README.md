@@ -1,6 +1,12 @@
 ﻿﻿
 # the occlusion algorithm  
 
+without occlusion, the order of the voxels will be wrong  
+
+<img alt="animated algorithm 2d" src="./occlusion-comparison.gif" height="400" />  
+
+here is a simple visualization of how the voxels are ordered  
+
 <img alt="animated algorithm 2d" src="./occlusion-2D.gif" height="300" />
 
 diagonal lines occlude other diagonal lines further away. voxels in the same diagonal don't occlude each other. their order is irrelevant. 
