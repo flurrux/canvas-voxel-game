@@ -1,5 +1,5 @@
 import { filter, flatten } from 'fp-ts/lib/Array';
-import { not, pipe } from 'fp-ts/lib/function';
+import { identity, not, pipe } from 'fp-ts/lib/function';
 import { isNone, Option } from 'fp-ts/lib/Option';
 import { Transformation, Vector3 } from '../lib/types';
 import * as Vec3 from '../lib/vec3';
@@ -127,7 +127,7 @@ function renderCrossHair(ctx: CanvasRenderingContext2D){
 	ctx.restore();
 }
 
-const sortVoxels = createVoxelArraySortFunctionWithCamPosition<Vector3>(3);
+const sortVoxels = createVoxelArraySortFunctionWithCamPosition<Vector3, Vector3>(identity, 3);
 function renderVoxels(ctx: CanvasRenderingContext2D, camera: PerspectiveCamera, voxels: Vector3[]){
 	const visibleVoxels = pipe(
 		voxels,

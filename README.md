@@ -6,6 +6,7 @@ a very simple voxel game that i made using only [2d canvas](https://developer.mo
 
 the game has simple physics like jumping and collision with voxels. 
 leftclick to place a voxel and rightclick to destroy one.  
+look at a voxel and press "j" to catapult yourself on top of it.  
 
 the code is not optimized at all and adding a couple hunded voxels will cause the framerate to drop!  
 

@@ -1,7 +1,7 @@
 import { inverse, multiplyMatrix, multiplyVector, rotation } from "../../lib/mat3x3";
 import { Matrix3, Vector2, Vector3 } from "../../lib/types";
 import { CameraSettings, PerspectiveCamera } from "./perspective-camera";
-import { setYZero } from "../util";
+import { flattenY, setYZero } from "../util";
 import * as Vec3 from '../../lib/vec3';
 
 export type FirstPersonCamera = {
@@ -52,9 +52,21 @@ export function toPerspectiveCam(freeCam: FirstPersonCamera): PerspectiveCamera 
 	}
 }
 
+function calculateGlobalWalkVelocity(orientation: Matrix3, localWalkVelocity: Vector3): Vector3 {
+	const forward = orientation.slice(6) as Vector3;
+	if (Vec3.isZero(forward)) return [0, 0, 0];
+	const flatForward = flattenY(forward);
+	const flatOrientation = [
+		...orientation.slice(0, 3),
+		0, 1, 0, 
+		...flatForward
+	] as Matrix3;
+	return multiplyVector(flatOrientation, localWalkVelocity);
+}
+
 export const updateCameraLocomotion = (dt: number) => (camera: FirstPersonCamera): FirstPersonCamera => {
 	const orientation = calculateOrientation(camera);
-	let globalWalkVelocity = setYZero(multiplyVector(orientation, camera.walkVelocity));
+	const globalWalkVelocity = calculateGlobalWalkVelocity(orientation, camera.walkVelocity);
 	const globalVelocity = Vec3.add(globalWalkVelocity, camera.fallVelocity);
 	const curPosition = camera.feetPosition;
 	let nextPosition = Vec3.add(curPosition, Vec3.multiply(globalVelocity, dt));
