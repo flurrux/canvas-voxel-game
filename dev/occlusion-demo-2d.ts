@@ -1,4 +1,4 @@
-import { drawDisc } from "../lib/ctx-util";
+import { drawDisc, pathPolygon, pathPolyline } from "../lib/ctx-util";
 import { Vector2 } from "../lib/types";
 // import { createVoxelArraySortFunctionWithCamPosition } from "../src/occlusion-sorting";
 // import { sortVoxels } from "../src/occlusion-sorting";
@@ -46,13 +46,15 @@ const boardSize: Vector2 = [6, 4];
 const camPosition: Vector2 = [0, 0];
 const camPositionRounded = camPosition.map(Math.round) as Vector2;
 let voxelPoints: Vector2[] = ([
-	[0, 3], [0, 2], [1, 2], [2, 2], [2, 1], [2, 0], [2, -1], [2, -2], [1, -2], [0, -3], [5, 4], [5, 3], [6, 3], [6, 4], [4, -4], [5, -3], [5, 1], [6, 1], [7, 1], [7, 0], [7, -1], [6, -1], [-1, 4], [-10, 4], [-10, 3], [-9, 3], [-9, 2], [-9, 1], [-10, 1], [-10, 0], [-10, -2], [-9, -2], [-8, -2], [-10, -4], [-9, -4], [-8, -4], [-7, -4], [-6, -4], [-6, -3], [-6, 4], [-6, 1], [-4, 3], [-3, -4], [-3, -3]
-] as Vector2[]).map(v => Vec2.add(v, [3, 0]));
+	[4, 1], [3, 2], [2, 3], [1, 4],
+	[7, 1], [6, 2], [5, 3], [4, 4], [3, 5], [2, 6], [1, 7]
+	// [0, 3], [0, 2], [1, 2], [2, 2], [2, 1], [2, 0], [2, -1], [2, -2], [1, -2], [0, -3], [5, 4], [5, 3], [6, 3], [6, 4], [4, -4], [5, -3], [5, 1], [6, 1], [7, 1], [7, 0], [7, -1], [6, -1], [-1, 4], [-10, 4], [-10, 3], [-9, 3], [-9, 2], [-9, 1], [-10, 1], [-10, 0], [-10, -2], [-9, -2], [-8, -2], [-10, -4], [-9, -4], [-8, -4], [-7, -4], [-6, -4], [-6, -3], [-6, 4], [-6, 1], [-4, 3], [-3, -4], [-3, -3]
+] as Vector2[]);
 
 type VoxelObject = { position: Vector2, alpha: number };
 const voxels = voxelPoints.map(position => ({
 	position,
-	alpha: 0.2
+	alpha: 1
 } as VoxelObject));
 
 type DiagonalObject = { signPattern: Vector2, value: number, alpha: number };
@@ -75,7 +77,7 @@ function drawGrid(){
 		strokeStyle: "#404040",
 		globalAlpha: 0.1
 	});
-	const [w, h] = [12, 7];
+	const [w, h] = [12, 9];
 	for (let i = -w; i <= w; i++){
 		ctx.beginPath();
 		ctx.moveTo(i, -h);
@@ -190,17 +192,54 @@ function highlightDiagonal(diag: DiagonalObject){
 
 const canvasScale = 80;
 
+function visualizeOcclusion(){
+	const camPoint: Vector2 = [-0.3, 0.2];
+
+	for (let i = 0; i < 2; i++){
+		for (let j = 0; j < 4; j++){
+			const voxel = voxels[j].position;
+			const vertex1 = [voxel[0] - 0.5, voxel[1] + 0.5] as Vector2;
+			const vertex2 = [voxel[0] + 0.5, voxel[1] - 0.5] as Vector2;
+			const ray1End = Vec2.multiply(Vec2.subtract(vertex1, camPoint), 10);
+			const ray2End = Vec2.multiply(Vec2.subtract(vertex2, camPoint), 10);
+			
+			if (i === 0){
+				pathPolygon(ctx, [
+					vertex1, ray1End,
+					ray2End, vertex2
+				]);
+				ctx.fillStyle = "black";
+				ctx.globalAlpha = 0.3;
+				ctx.fill();
+			}
+			else {
+				ctx.globalAlpha = 1;
+				ctx.lineWidth = 0.03;
+				ctx.strokeStyle = "yellow";
+				ctx.setLineDash([0.2, 0.2]);
+				pathPolyline(ctx, [camPoint, ray1End]);
+				ctx.stroke();
+				pathPolyline(ctx, [camPoint, ray2End]);
+				ctx.stroke();
+			}
+		}
+	}
+}
+
 function render(){
 	ctx.fillStyle = "#d1cac0";
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	ctx.save();
 	ctx.transform(canvasScale, 0, 0, -canvasScale, canvas.width / 2, canvas.height / 2);
+	ctx.translate(-3, -3);
 
 	drawLineStripes();
 	drawCamera();
 	drawGrid();
-	highlightDiagonal(diagonal);
 	voxels.forEach(drawVoxel);
+	visualizeOcclusion();
+
+
 
 	ctx.restore();
 }
@@ -280,4 +319,4 @@ async function playAnimation(){
 // });
 
 render();
-playAnimation();
+// playAnimation();

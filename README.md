@@ -14,7 +14,3 @@ game: https://xenodochial-galileo-70d0a4.netlify.app/
 ## why and how?
 
 i just had the strong urge to figure out an occlusion algorithm for voxels and then render them with CanvasRenderingContext2D, my favourite graphics API.  
-
-here is a visualization of the occlusion algorithm i came up with in 2D
-
-![occlusion 2d](https://github.com/flurrux/canvas-voxel-game/blob/main/occlusion-2D.gif)

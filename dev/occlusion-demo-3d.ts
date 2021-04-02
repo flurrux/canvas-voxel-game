@@ -396,17 +396,17 @@ const initialDemoVoxels: Voxel[] = [
 		type: "camera", 
 		position: [0, 0, 0]
 	},
-	// ...pipe(
-	// 	createBoxPoints(boxSize),
-	// 	// filter(flow(isPointInSubSpace(focusedSubSpace))),
-	// 	randomSubSet(0.1),
-	// 	map(position => ({
-	// 		type: "filled",
-	// 		position,
-	// 		color: randomRgbVector(),
-	// 		alpha: 0.2,
-	// 	} as FilledVoxel))
-	// )
+	...pipe(
+		createBoxPoints(boxSize),
+		// filter(flow(isPointInSubSpace(focusedSubSpace))),
+		randomSubSet(0.08),
+		map(position => ({
+			type: "filled",
+			position,
+			color: [145, 171, 179],// randomRgbVector(),
+			alpha: 0.2,
+		} as FilledVoxel))
+	)
 ];
 
 let voxels: Voxel[] = [
