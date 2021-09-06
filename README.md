@@ -10,7 +10,7 @@ look at a voxel and press "j" to catapult yourself on top of it.
 
 the code is not optimized at all and adding a couple hunded voxels will cause the framerate to drop!  
 
-game: https://xenodochial-galileo-70d0a4.netlify.app/
+game: https://ctx-voxel-game.netlify.app/
 
 ## why and how?
 
